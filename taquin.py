@@ -14,6 +14,7 @@ class Agent_Case:
         self.etat = 1
 
 
+
 class Agent_palet:
     def __init__(self,x,y,valeur,puzzle):
         self.posx = x
@@ -50,6 +51,7 @@ class Agent_palet:
 
     def try_satisfaction(self):
         while self.etat != 1:
+            self.update_voisins()
             list_distance = []
             list_voisins = []
             for voisin in self.voisins:
@@ -57,25 +59,72 @@ class Agent_palet:
                 list_voisins.append(voisin)
 
             cible = list_voisins[list_distance.index(min(list_distance))]
+
+            print(self.valeur, "agresse", cible.valeur)
             self.agresser(cible)
             self.check_satisfait()
+            print("CASES :")
+            puzzle.afficherCases()
+            print("PALETS :")
+            puzzle.afficherPaletsBis()
+            #input("Press Enter to continue...")
 
     def agresser(self,palet):
         palet.etat = -1
-        palet.fuite()
+        palet.fuite(self)
+        self.update_voisins()
+        for voisin in self.voisins:
+            if(voisin.valeur == -1):
+                voisin.fuite(self)
 
-    def fuite(self):
-        voisins = self.update_voisins()
-        # TODO : supprimer des voisins les contraintes
-        #
+        palet.etat = 0
 
-
-
-
-
+        # Sinon on peut essayer de juste réagresser ça devrait marcher ???
 
 
+    def fuite(self,palet):
+        print("je fuis !",self.valeur)
+        self.update_voisins()
+        if(self.valeur == -1): # Agent blanc
+            self.echanger_place(palet)
+            return 1
+        else:
+            # TODO : supprimer des voisins les contraintes
+            list_distance = []
+            list_voisins = []
+            for voisin in self.voisins:
+                list_distance.append(distance_but(voisin, self.but))
+                list_voisins.append(voisin)
 
+            done = False
+
+            while not done:
+                if len(list_distance) == 0:
+                    print("fuck")
+                    return -1
+
+                cible = list_voisins[list_distance.index(min(list_distance))]
+                del list_voisins[list_distance.index(min(list_distance))]
+                del list_distance[list_distance.index(min(list_distance))]
+                if cible.etat != -1:
+                    print(self.valeur,"agresse",cible.valeur)
+                    self.agresser(cible)
+                    done = True
+                else:
+                    print("je ne peux pas agresser",cible.valeur)
+
+            return 0
+
+
+    def echanger_place(self,palet):
+        x_palet = palet.posx
+        y_palet = palet.posy
+        x_self = self.posx
+        y_self = self.posy
+        palet.posx = x_self
+        palet.posy = y_self
+        self.posx = x_palet
+        self.posy = y_palet
 
 class Puzzle:
     def __init__(self,taille):
@@ -91,6 +140,7 @@ class Puzzle:
         for i in range(taille):
             for j in range(taille):
                 if j == taille-1 and i == taille-1:
+                    self.palets.append(Agent_palet(i,j,-1,self))# Agent palet blanc
                     break
                 self.palets.append(Agent_palet(i, j, list_elem[i * taille + j], self))
 
@@ -102,10 +152,21 @@ class Puzzle:
     def afficherPalets(self):
         for i in range(self.taille):
             for j in range(self.taille):
-                #print(self.cases[i*self.taille+j].valeur,end=" ")
-                    if not(i == self.taille-1 and j == self.taille-1):
-                        print(self.palets[i*(self.taille)+j].valeur,end=" ")
+                print(self.palets[i*(self.taille)+j].valeur,end=" ")
             print("\n")
+
+    def afficherPaletsBis(self):
+        for i in range(self.taille):
+            for j in range(self.taille):
+                self.paletxy(i,j)
+            print("\n")
+
+    def paletxy(self,x,y):
+        for palet in self.palets:
+            if __name__ == '__main__':
+                if palet.posx == x and palet.posy == y:
+                    print(palet.valeur, end=" ")
+
     def afficherCases(self):
         for i in range(self.taille):
             for j in range(self.taille):
@@ -121,7 +182,15 @@ if __name__ == '__main__':
     print("CASES :")
     puzzle.afficherCases()
     print("PALETS :")
-    puzzle.afficherPalets()
+    puzzle.afficherPaletsBis()
 
-    print(puzzle.cases[3].posx)
-    print(puzzle.cases[3].posy)
+    for palet in puzzle.palets[0:4]:
+        palet.try_satisfaction()
+
+
+    # puzzle.palets[7].try_satisfaction()
+
+    print("CASES :")
+    puzzle.afficherCases()
+    print("PALETS :")
+    puzzle.afficherPaletsBis()
