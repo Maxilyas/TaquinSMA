@@ -168,12 +168,12 @@ class Agent_palet:
 
         for item in distances:
             if item[1] == 1:
-                print("WTF MAN")
+                print("ne devrait pas arriver")
                 sys.exit()
 
-        if random.randint(0,50) == 42 :
+        if random.randint(0,35) == 42 :
             random.shuffle(distances)
-            print("WAZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+            print("random move")
             return distances
 
         return distances
@@ -204,7 +204,7 @@ class Puzzle:
             # palet.check_satisfait()
 
     def shuffle(self):
-        for i in range(1,100):
+        for i in range(1,40):
             for blanc in self.palets:
                 if blanc.valeur == -1:  # Mais quand ça arrive on fait un mouvement aléatoire a la place, qui ne bouge pas de palet satisfait
                     blanc.update_voisins()
@@ -250,15 +250,19 @@ if __name__ == '__main__':
     puzzle = Puzzle(TAILLE_PUZZLE)
     puzzle.shuffle()
 
+    import copy
+    depart = copy.deepcopy(puzzle)
+
     # print("CASES :")
     # puzzle.afficherCases()
-    print("ETATS :")
-    puzzle.afficherEtats()
+    # print("ETATS :")
+    # puzzle.afficherEtats()
     print("PALETS :")
     puzzle.afficherPaletsBis()
 
     liste_palets = []
 
+    # méthode sale pour ordonner les satisfactions
     for palet in puzzle.palets:
         if palet.valeur == 0:
             liste_palets.append(palet)
@@ -297,6 +301,13 @@ if __name__ == '__main__':
     liste_palets[2].try_satisfaction()
     liste_palets[3].try_satisfaction()
     liste_palets[4].try_satisfaction()
+    liste_palets[5].try_satisfaction()
+    liste_palets[6].try_satisfaction()
+    liste_palets[7].try_satisfaction()
 
     print("ETATS :")
     puzzle.afficherEtats()
+
+    print("DEPART était :")
+    depart.afficherPaletsBis()
+
