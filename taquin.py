@@ -54,35 +54,32 @@ class Agent_palet:
     def try_satisfaction(self):
         self.check_satisfait()
         while self.etat != 1:
-            self.update_voisins()
-            list_distance = []
-            list_voisins = []
-            for voisin in self.voisins:
-                list_distance.append(distance_but(voisin,self.but))
-                list_voisins.append(voisin)
+            self.etat = -1
+            distances = self.ordre_voisins()
 
-            cible = list_voisins[list_distance.index(min(list_distance))]
+            cible = distances[0][0]
 
             print(self.valeur, "agresse", cible.valeur)
             self.agresser(cible)
             self.check_satisfait()
-            # print("CASES :")
-            # puzzle.afficherCases()
+
             print("ETATS :")
             puzzle.afficherEtats()
             print("PALETS :")
             puzzle.afficherPaletsBis()
-            #input("Press Enter to continue...")
 
     def agresser(self,palet):
-        if (palet.etat == 1):
+        if (palet.etat == 1):    # On n'agresse pas un palet satisfait (même si ça devrait déjà ne jamais arriver ...)
             print("nope")
             for blanc in self.puzzle.palets:
-                if blanc.valeur == -1:
+                if blanc.valeur == -1:  # Mais quand ça arrive on fait un mouvement aléatoire a la place, qui ne bouge pas de palet satisfait
                     print("dans if")
                     blanc.update_voisins()
-                    random.choice(blanc.voisins).agresser(blanc)
-                    return 1
+                    while True :
+                        cible =  random.choice(blanc.voisins)
+                        if cible.etat != 1:
+                            cible.agresser(blanc)
+                            return 1
 
         palet.etat = -1
         try:
@@ -133,6 +130,7 @@ class Agent_palet:
                     palet.etat = 0
                     return 1
                 sys.exit()
+
             print(self.valeur, "agresse", cible.valeur)
             self.agresser(cible)
 
@@ -167,15 +165,16 @@ class Agent_palet:
         distances = []
         distances.extend(etat0)
         distances.extend(etatm1)
-        if random.randint(0,50) == 42 :
-            random.shuffle(distances)
-            print("WAZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-            return distances
 
         for item in distances:
             if item[1] == 1:
                 print("WTF MAN")
                 sys.exit()
+
+        if random.randint(0,50) == 42 :
+            random.shuffle(distances)
+            print("WAZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+            return distances
 
         return distances
 
@@ -185,7 +184,8 @@ class Puzzle:
         self.taille = taille
         self.cases = []
         self.palets = []
-        list_elem = random.sample(range(taille*taille-1),taille*taille-1)
+        #list_elem = random.sample(range(taille*taille-1),taille*taille-1)
+        list_elem = range(taille*taille-1)
 
         for i in range(taille):
             for j in range(taille):
@@ -202,6 +202,14 @@ class Puzzle:
             palet.get_but(self.cases)
             palet.puzzle = self
             # palet.check_satisfait()
+
+    def shuffle(self):
+        for i in range(1,100):
+            for blanc in self.palets:
+                if blanc.valeur == -1:  # Mais quand ça arrive on fait un mouvement aléatoire a la place, qui ne bouge pas de palet satisfait
+                    blanc.update_voisins()
+                    cible = random.choice(blanc.voisins)
+                    cible.agresser(blanc)
 
 
     def afficherPalets(self):
@@ -240,6 +248,8 @@ class Puzzle:
 if __name__ == '__main__':
     TAILLE_PUZZLE = 3
     puzzle = Puzzle(TAILLE_PUZZLE)
+    puzzle.shuffle()
+
     # print("CASES :")
     # puzzle.afficherCases()
     print("ETATS :")
@@ -286,11 +296,7 @@ if __name__ == '__main__':
     liste_palets[1].try_satisfaction()
     liste_palets[2].try_satisfaction()
     liste_palets[3].try_satisfaction()
-    #liste_palets[4].try_satisfaction()
-
-    # puzzle.palets[0].try_satisfaction()
-    # puzzle.palets[1].try_satisfaction()
-    # puzzle.palets[2].try_satisfaction()
+    liste_palets[4].try_satisfaction()
 
     print("ETATS :")
     puzzle.afficherEtats()
